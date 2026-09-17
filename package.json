@@ -1,0 +1,12 @@
+{
+  "name": "pharmacy-stock",
+  "private": true,
+  "scripts": {
+    "test": "npm --prefix backend test",
+    "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "install:all": "npm install --prefix backend && npm install --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
