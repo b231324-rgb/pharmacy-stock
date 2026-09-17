@@ -6,24 +6,26 @@ class StockError extends Error {
   }
 }
 
+const { getNow } = require('./clockService');
+
 function isInDate(batch, now) {
   return new Date(batch.expiryDate).getTime() > now.getTime();
 }
 
-function getSellableStock(batches, now = new Date()) {
+function getSellableStock(batches, now = getNow()) {
   return batches
-    .filter((batch) => isInDate(batch, now))
+    .filter((batch) => batch.status !== 'quarantined' && isInDate(batch, now))
     .reduce((total, batch) => total + Math.max(0, Number(batch.quantity) || 0), 0);
 }
 
-function getDispensePlan(batches, quantityRequested, now = new Date()) {
+function getDispensePlan(batches, quantityRequested, now = getNow()) {
   const requested = Number(quantityRequested);
   if (!Number.isInteger(requested) || requested <= 0) {
     throw new StockError('quantity must be a positive whole number');
   }
 
   const eligible = batches
-    .filter((batch) => isInDate(batch, now) && batch.quantity > 0)
+    .filter((batch) => batch.status !== 'quarantined' && isInDate(batch, now) && batch.quantity > 0)
     .sort((first, second) => new Date(first.expiryDate) - new Date(second.expiryDate));
   const available = getSellableStock(batches, now);
 
@@ -50,14 +52,14 @@ function applyDispensePlan(batches, plan) {
   }));
 }
 
-function getExpiringSoon(batches, days = 30, now = new Date()) {
+function getExpiringSoon(batches, days = 30, now = getNow()) {
   const cutoff = new Date(now.getTime() + Number(days) * 24 * 60 * 60 * 1000);
   return batches
-    .filter((batch) => batch.quantity > 0 && isInDate(batch, now) && new Date(batch.expiryDate) <= cutoff)
+    .filter((batch) => batch.status !== 'quarantined' && batch.quantity > 0 && isInDate(batch, now) && new Date(batch.expiryDate) <= cutoff)
     .sort((first, second) => new Date(first.expiryDate) - new Date(second.expiryDate));
 }
 
-function getExpiredWithStock(batches, now = new Date()) {
+function getExpiredWithStock(batches, now = getNow()) {
   return batches
     .filter((batch) => batch.quantity > 0 && !isInDate(batch, now))
     .sort((first, second) => new Date(first.expiryDate) - new Date(second.expiryDate));

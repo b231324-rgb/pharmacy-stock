@@ -5,15 +5,19 @@ const authRoutes = require('./routes/auth');
 const medicineRoutes = require('./routes/medicines');
 const alertRoutes = require('./routes/alerts');
 const searchRoutes = require('./routes/search');
+const clockRoutes = require('./routes/clock');
+const outboxRoutes = require('./routes/outbox');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+app.use('/api/clock', clockRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/medicines', medicineRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/outbox', outboxRoutes);
 app.use((error, _req, res, _next) => {
   const status = error.statusCode || (error.name === 'ValidationError' ? 400 : 500);
   res.status(status).json({ error: error.message || 'internal server error' });

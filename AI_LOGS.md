@@ -17,3 +17,9 @@ The React/Vite client was added with a public landing page, registration/login s
 The first route implementation performed some sort/slice work after fetching broader result sets. That was identified during review and corrected with Mongo aggregation and server-side `sort`, `skip`, `limit`, and counts. A CSS import-order warning from the preview styling was also found during the production build and removed.
 
 Final checks passed: Vite production build and all five Jest tests.
+
+## Follow-up twist implementation
+
+The follow-up requirements added a singleton simulated clock, persisted batch quarantine, JSON bulk import, and a reorder notification outbox. The clock now controls all application expiry decisions and exposes `/api/clock` plus `/api/clock/tick`. Batch status is `active` or `quarantined`; the quarantine job updates expired active records and reports seven-day active alerts.
+
+Bulk import was implemented as a pure parser/normalizer with tests for unit-suffixed quantities, both date formats, invalid dates, null fields, and stable duplicate keys. The dispense transaction now calculates the stock threshold transition and writes one `REORDER_ALERT` outbox entry only when crossing below the medicine's required reorder level. The expanded backend suite passed with 15 tests across four suites.
